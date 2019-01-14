@@ -55,13 +55,45 @@ you.
 0. If you have a command and its not there, just add it! Your team will benefit from it.
 
 ### My story
+
 ### Teams that don't currently use Makefiles
+These days, it isn't surprising to join a startup that does not use
+Makefiles. Often, developers in these situations are using the tools
+that come with the software environment they are using. If its rails,
+they are going to be using `bundle`, `rails`, and `rspec` commands;
+this is fine, in fact, with a Makefile, you will still be using these
+commands, but the Makefile will essentially be an abstraction over
+these commands.
 
 ### Use it for yourself even if they don't want it
-### Structure of a Makefile
-    use tabs
+Because a Makefile is simply an abstraction over commonly used tools,
+there is no downside to using a Makefile even if your team doesn't yet
+see the value in it; they can continue using their workflow while you
+use the Makefile. I would suggest committing it into the repository
+once you have developed a useful Makefile, and then when someone asks
+how to reseed a database, for example, you can mention "Just run make
+db-seed".
+
+### What is a Makefile?
+There are years of use cases and idiomatic practices that can make
+learning about Makefiles daunting. I want to introduce the basics so
+you can start using Makefiles right away. Its very simple when we break it down.
+
+The Makefile is a file, usually in the root of a project, with the name `Makefile`.
+
+A Makefile is made up of `rules`. A `rule` contains a `target`, `prerequisits`
+
 ### Just write down the commands you use now. 
-    Don't design for the future.
+They key to successfully writing a Makefile is to just write down the
+commands you need at the moment. Ran a new command? Put it in the
+Makefile. Over time, the Makefile will grow to include even those rare
+commands you rarely run and can't remember what they were. 
+
+Do not try to come up with all the commends you will need and write
+them down at once; it is too difficult to do this upfront, and most
+likely will not result in a useful Makefile. Instead, while developers
+are working and need a new command, they should commit them into the
+Makefile at that point.
 ### Makefiles are about files
 ### Makefiles are not about files
     
