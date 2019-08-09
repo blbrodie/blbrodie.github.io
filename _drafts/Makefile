@@ -1,0 +1,5 @@
+file_1:
+	touch file_1
+
+file_2: file_1
+	touch file_2
