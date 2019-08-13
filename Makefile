@@ -2,6 +2,9 @@
 
 deps: .make.deps
 
+clean:
+	bundle exec jekyll clean
+
 .make.deps: Gemfile
 	bundle
 	touch .make.deps

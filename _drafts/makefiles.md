@@ -1,6 +1,6 @@
 ---
 layout: post
-title: The Language Agnositic, all-purpose, incredible, Makefile
+title: The Language Agnositic, All-Purpose, Incredible, Makefile
 categories: Makefile
 ---
 
@@ -195,41 +195,252 @@ Do you see what's happening here? If the timestamp of the prerequisite is _more 
 
 #### I Can't Get No Preqrequisite Satisfaction
 
-Feeling a bit like you are on an island? We have looked into the mechanics of the `Make` operations, and the syntax of the `Makefile`, but how does this all work together, and what is the _point_ of all this anyways? If it hasn't clicked yet, _that's okay_; we are going to get there, I promise.
+Feeling a bit like you are on an island? We have looked into the some of the
+mechanics of the `Make` operations, and the syntax of the `Makefile`, but how
+does this all work together, and what is the _point_ of all this anyways? If it
+hasn't clicked yet, _that's okay_; we are going to get there, I promise.
 
-It will be helpful for a moment to think of the `Makefile` as a tree, where each node represents a `target`, and an edge represents a target's relationship to it's prerequisites.
+It will be helpful for a moment to think of a Makefile target as a tree,
+where each node represents a target, and an edge represents a
+target's relationship to it's prerequisites.
 
-    file_1 -- file_2
-           \- file_3
+    file_3 -- file_1
+           \- file_2
 
-Here we have three targets: `file_1`, `file_2`, and `file_3`. `file_2` and `file_3` both have one prerequisite, `file_1`, and since they are leaves, they are not the prerequisite of any other targets.
+Here we have three targets: `file_1`, `file_2`, and `file_3`. `file_3`
+has prerequisites `file_2` and `file_1`, and since these are both
+leaves, they do not have other prerequisites.
 
 Represented in a makefile, it could look like this:
 
     file_1: 
         touch file_1
       
-    file_2: file_1
+    file_2: 
         touch file_2
         
-    file_3: file_1
+    file_3: file_1 file_2
         touch file_3
         
-Following? If not, that's okay, just reread this section - it's a key concept.
+Following? If not, that's okay, just reread this section - it's a key
+concept.
 
+So, we are thinking of a target in the Makefile as representing a tree of
+targets, where the target is the root, and the children of a node are the
+prerequisites of that node. If the prerequisite of a node isn't
+_satisfied_ (we'll get into what that means exactly), `Make` will travel down the
+tree until it finds a node that _is_ satisfied. Once it finds that satisfied
+prerequisite, it will reverse the path it just took to get to the satisfied
+prerequisite, and for each node in this path, it will execute the target (which
+itself could have it's own other prerequisites).
 
+Let's look at a slightly more complex tree.
 
+    file_6 -- file_5 -- file_4
+                     \- file_3 -- file_2
+                               \- file_1
+                               
+which corresponds to the following `Makefile`
 
-
+    file_1:
+        touch file_1
+        
+    file_2: 
+        touch file_2
+        
+    file_3: file_2 file_1
+        touch file_3
+        
+    file_4:
+        touch file_4
+        
+    file_5: file_4 file_3
+        touch file_5
+        
+    file_6: file_5
+        touch file_6
+        
+Let's say the output of your `ls -ahl` is the following:
     
-
-
+    -rw-r--r--   1 ben.brodie  staff     0B Aug  9 10:52 file_1
+    -rw-r--r--   1 ben.brodie  staff     0B Aug  9 10:52 file_2
+    -rw-r--r--   1 ben.brodie  staff     0B Aug  9 10:52 file_3
     
+And we run
+
+    make file_6
+    
+`Make` now will traverse the tree, pushing each child onto a stack
+recursively. Then, it will pop each node off the stack and check if it is
+satisfied. If it is not satisfied, it will run the command for that node.
+
+    stack.push(file_6) -> |file_6|
+    stack.push(file_5) -> |file_5, file_6|
+    stack.push(file_4) -> |file_4, file_5, file_6|
+    stack.push(file_3) -> |file_3, file_4, file_5, file_6|
+    stack.push(file_2) -> |file_2, file_3, file_4, file_5, file_6|
+    stack.push(file_1) -> |file_1, file_2, file_3, file_4, file_5, file_6|
+    
+    stack.pop() -> file_1 <- |file_2, file_3, file_4, file_5, file_6|
+    
+Is `file_1` satisfied? It is a leaf and it exists, so **Yes**.
+
+    stack.pop() -> file_2 <- |file_3, file_4, file_5, file_6|
+    
+Is `file_2` satisfied? It is a leaf and it exists, so **Yes**.
+
+    stack.pop() -> file_3 <- |file_4, file_5, file_6|
+    
+Is `file_3` satisfied? `file_3` exists. It's children are `file_2` and `file_3`, _and_ their
+timestamps are _older than_ the timestamp of `file_3`, so **Yes**.
+
+    stack.pop() -> file_4 <- |file_5, file_6|
+    
+Is `file_4` satisfied? It does not exist so **No**. Run the command.
+
+    touch file_4
+    
+    stack.pop() -> file_5 <- |file_6|
+    
+Is `file_5` satisfied? It does not exist so **No**. Run the command.
+
+    touch file_5
+    
+    stack.pop -> file_6 <- | |
+    
+Is `file_6` satisfied? It does not exist so **No**. Run the command.
+
+    touch file_6
+    
+We haven't come up with a formal definition of _satisfaction_, but now we
+can. As we saw earlier, we know two things must hold for satisfaction of a
+target:
+1. The target must exist.
+2. The target's timestamp must be newer than the timestamp of it's
+   prerequisites.
+                               
+We also know from this exercise that the entire tree is traversed, if _any_
+prerequisite in the tree is not satisfied, _then the target of that prerequisite
+is also not satisfied_. This gives us a third property:
+1. The target must exist.
+2. The target's timestamp must be newer than the timestamp of it's
+   prerequisites.
+3. The prerequisite targets must be satisfied.
+
+### Satisfaction Summary
+This section is just a summary of what we just arrived at. The properties of
+satisfaction for a target. 
+
+1. The target must exist.
+2. The target's timestamp must be newer than the timestamp of the target's 
+   prerequisites.
+3. The prerequisite targets must be satisfied.
+
+### Make is about files
+
+So far, we have been implicitly only talking about files. The first property
+requires that the "target exists" - a target's existence is determined by a file
+of the same name existing. The timestamp requirement, that a timestamp must be
+newer than the timestamp of the prerequisites, is also only meaningful when the
+target name has a one-to-one correspondence with files. 
+
+This is the point at which one realizes what `Make` is all about, and without
+some further prodding, it is easy to mistakenly believe that it may *not* be relevant
+to *your* set of problems or *your* language tools - but this is the naive fog
+of mis-perceptions clouding judgment - we will get to the good stuff soon enough.
+
+Make is about files. Files are the primitives of how make operates, because
+files allow us to keep track of *state*. If the prerequisite of a target is
+satisfied, *make won't run the prerequisites*. If some prerequisites along the
+line are satisfied, *make will only run the prerequisites that are not
+satisfied*.
+
+This all comes down to that timestamp property - *the target's timestamp must be
+newer than the timestamp of the target's prerequisites*. Keep in mind that the
+third property makes this recursive, so it applies all the way down the tree of
+prerequisites. 
+
+Let's consider the implications of the timestamp property. If a prerequisite's
+timestamp is newer than the target's timestamp, that means that the
+prerequisite was generated some time _after_ the time the target was
+generated. A prerequisite relations exists because something about the target
+*depends on* something about the prerequisite, therefore, if the prerequisite is
+newer, then we must have to regenerate the target, otherwise the target as it
+currently exists is outdated.
+
+Time for an analogy. I'm booking a trip to Poland, and then flying to Tromsø,
+Norway by way of a flight from Riga, Latvia. I have to plan the return flight from Tromsø
+to Los Angeles, and the date at which I book that is dependent upon the date at
+which my girlfriend and I flying into Norway from Riga. Every time we update the
+date we want to fly to Tromso from Riga, we have to update the time we want to
+fly back to Los Angeles from Tromso, otherwise we could be left with half a day
+in Tromsø, or even end up with something physically impossible, like flying back
+to Los Angeles from Tromsø *before* we land in Tromsø.
+
+Let's formulate this as Makefile rules, where we have four trip legs we need to coordinate.
+
+1. Flight from Los Angeles to Krakáw, Poland
+2. Drive from Krakáw, Poland to Riga
+3. Fly from Riga to Tromsø
+4. Fly from Tromsø to Los Angeles
+
+        schedule_flight_to_krakaw: 
+            echo $(krakaw_date) > schedule_flight_to_krakaw
+
+        schedule_drive_to_riga: schedule_flight_to_krakaw
+            echo $(riga_date) > schedule_drive_to_riga
+
+        schedule_flight_to_tromso: schedule_drive_to_riga
+            echo $(tromso_date) > schedule_flight_to_tromso
+
+        schedule_flight_to_los_angeles: schedule_flight_to_tromso
+            echo $(los_angeles_date) > schedule_flight_to_los_angeles
+
+Here I have introduced a new piece of syntax in make files - arguments. A word
+surround with a `$(...)` will be replaced by the string specified on the command
+line for that argument. For example, `$(arg_1)` will be replaced by `file_1` in
+either of these invocations of `Make`: `arg_1=file_1 make file` or `make file
+arg_1=file_1`. Simple, right? Yes, it is.
+
+So, to schedule the flight to Krakáw, we invoke `Make` as `make
+schedule_flight_to_krakaw krakaw_date=08/01/2019` 
+
+Let's see what it produced.
+
+    $ cat schedule_flight_to_krakaw
+    10/01/2019
+    
+It would be easier to simply pass all of the dates and have `Make` take care of
+creating all of the files. By default, `Make` will run the first target in the
+file, and idiomatically we will call this target `all`.
+
+    all: schedule_flight_to_los_angeles
+    
+Now we can invoke this with or without `all`
+
+    $ make krakaw_date=10/01/2019 \
+           riga_date=10/15/2019 \
+           tromso_date=10/20/2019 \
+           los_angeles_date=10/23/2019
+      echo 10/01/2019 > schedule_flight_to_krakaw
+      echo 10/15/2019 > schedule_drive_to_riga
+      echo 10/20/2019 > schedule_flight_to_tromso
+      echo 10/23/2019 > schedule_flight_to_los_angeles
+      
+
+         
 
 
 
+#### Error handling
+#### Rescheduling
 
+### Makefiles are not about files
 
+### Making Bread Analogy
+                    
+### Making it fit with Ruby (or any other language)
+- Not in opposition to rake, rather complementary
 
 ### Just write down the commands you use now. 
 They key to successfully writing a Makefile is to just write down the
@@ -242,8 +453,6 @@ them down at once; it is too difficult to do this upfront, and most
 likely will not result in a useful Makefile. Instead, while developers
 are working and need a new command, they should commit them into the
 Makefile at that point.
-### Makefiles are about files
-### Makefiles are not about files
 ### Make vs Rake vs ...
 This is the wrong question to be asking. These tools are not diametrically opposed, rather, work together quite effectively.
     
