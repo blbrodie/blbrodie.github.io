@@ -363,7 +363,7 @@ prerequisites.
 Let's consider the implications of the timestamp property. If a prerequisite's
 timestamp is newer than the target's timestamp, that means that the
 prerequisite was generated some time _after_ the time the target was
-generated. A prerequisite relations exists because something about the target
+generated. A prerequisite relationship exists because something about the target
 *depends on* something about the prerequisite, therefore, if the prerequisite is
 newer, then we must have to regenerate the target, otherwise the target as it
 currently exists is outdated.
@@ -427,15 +427,99 @@ Now we can invoke this with or without `all`
       echo 10/20/2019 > schedule_flight_to_tromso
       echo 10/23/2019 > schedule_flight_to_los_angeles
       
-
-         
-
-
-
 #### Error handling
-#### Rescheduling
+
+Let's add some error handling so that we know which flight dates are required
+when we run make.
+
+We can use `sh` itself to handle errors, in this case missing arguments.
+
+    all: schedule_flight_to_los_angeles
+
+    schedule_flight_to_krakaw:
+        @if [ -z "$(krakaw_date)" ]; then \
+            echo "You must set krakaw_date"; exit 1; fi
+        echo $(krakaw_date) > schedule_flight_to_krakaw
+
+    schedule_drive_to_riga: schedule_flight_to_krakaw
+        @if [ -z "$(riga_date)" ]; then \
+            echo "You must set riga_date"; exit 1; fi
+        echo $(riga_date) > schedule_drive_to_riga
+
+    schedule_flight_to_tromso: schedule_drive_to_riga
+        @if [ -z "$(tromso_date)" ]; then \
+            echo "You must set tromso_date"; exit 1; fi
+        echo $(tromso_date) > schedule_flight_to_tromso
+
+    schedule_flight_to_los_angeles: schedule_flight_to_tromso
+        @if [ -z "$(los_angeles_date)" ]; then \
+            echo "You must set los_angeles_date"; exit 1; fi
+        echo $(los_angeles_date) > schedule_flight_to_los_angeles
+        
+The `@` simply specifies that `Make` will not echo the command, which for error
+checking would be just noise.
+
+Now if we run from a clean state, `Make` will inform us of any necessary
+arguments that are necessary, and fail. Here we have left out `riga_date`.
+
+    $ make krakaw_date=10/01/2019 \
+           tromso_date=10/20/2019 \
+           los_angeles_date=10/23/2019
+      echo 10/01/2019 > schedule_flight_to_krakaw
+      You must set riga_date
+      make: *** [schedule_drive_to_riga] Error 1
+
+Let's set the `riga_date`.
+
+    $ make riga_date=10/15/2019 \
+            tromso_date=10/20/2019 \
+            los_angeles_date=10/23/2019
+      echo 10/15/2019 > schedule_drive_to_riga
+      echo 10/20/2019 > schedule_flight_to_tromso
+      echo 10/23/2019 > schedule_flight_to_los_angeles
+
+Say we now want to reschedule the flight to Riga, Tromsø, and Los Angeles - we
+won't be able to since we have already schedule the flight to Krakaw.
+
+    $ make riga_date=10/16/2019 \
+           tromso_date=10/21/2019 \
+           los_angeles_date=10/24/2019
+      make: Nothing to be done for `all'.
+      
+#### Prerequisites
+
+`Make` won't allow us to reschedule once we have scheduled something.
+
+    $ make schedule_drive_to_riga riga_date=10/16/2019 
+    make: `schedule_drive_to_riga' is up to date.
+    
+But, for now, we can manually `rm` the file.
+
+    $ rm schedule_drive_to_riga
+    
+And then schedule it.
+
+    $ make schedule_drive_to_riga riga_date=10/16/2019 
+    
+Lets try to reschedule the flight to Los Angeles in the same manner.
+
+    $ rm schedule_flight_to_los_angeles
+    $ make schedule_flight_to_los_angeles los_angeles_date=10/24/2019
+      You must set tromso_date
+      make: *** [schedule_flight_to_tromso] Error 1
+      
+`Make` detects that our `schedule_flight_to_tromso` prerequisite is not
+satisfied because the timestamp of `schedule_flight_to_riga` is _newer_ than the
+timestamp of `schedule_flight_to_trompso`, therefore it also must be updated!
+So, let's do that.
+
+    $ make schedule_flight_to_los_angeles tromso_date=10/22/2019 los_angeles_date=10/24/2019
+      echo 10/22/2019 > schedule_flight_to_tromso
+      echo 10/24/2019 > schedule_flight_to_los_angeles
 
 ### Makefiles are not about files
+
+What if we want to make a reschedule target?
 
 ### Making Bread Analogy
                     
@@ -453,6 +537,7 @@ them down at once; it is too difficult to do this upfront, and most
 likely will not result in a useful Makefile. Instead, while developers
 are working and need a new command, they should commit them into the
 Makefile at that point.
+
 ### Make vs Rake vs ...
 This is the wrong question to be asking. These tools are not diametrically opposed, rather, work together quite effectively.
     
