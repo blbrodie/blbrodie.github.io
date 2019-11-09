@@ -196,7 +196,7 @@ Do you see what's happening here? If the timestamp of the prerequisite is _more 
 #### I Can't Get No Preqrequisite Satisfaction
 
 Feeling a bit like you are on an island? We have looked into the some of the
-mechanics of the `Make` operations, and the syntax of the `Makefile`, but how
+mechanics of the `make` operations, and the syntax of the `Makefile`, but how
 does this all work together, and what is the _point_ of all this anyways? If it
 hasn't clicked yet, _that's okay_; we are going to get there, I promise.
 
@@ -228,7 +228,7 @@ concept.
 So, we are thinking of a target in the Makefile as representing a tree of
 targets, where the target is the root, and the children of a node are the
 prerequisites of that node. If the prerequisite of a node isn't
-_satisfied_ (we'll get into what that means exactly), `Make` will travel down the
+_satisfied_ (we'll get into what that means exactly), `make` will travel down the
 tree until it finds a node that _is_ satisfied. Once it finds that satisfied
 prerequisite, it will reverse the path it just took to get to the satisfied
 prerequisite, and for each node in this path, it will execute the target (which
@@ -270,7 +270,7 @@ And we run
 
     make file_6
     
-`Make` now will traverse the tree, pushing each child onto a stack
+`make` now will traverse the tree, pushing each child onto a stack
 recursively. Then, it will pop each node off the stack and check if it is
 satisfied. If it is not satisfied, it will run the command for that node.
 
@@ -344,7 +344,7 @@ of the same name existing. The timestamp requirement, that a timestamp must be
 newer than the timestamp of the prerequisites, is also only meaningful when the
 target name has a one-to-one correspondence with files. 
 
-This is the point at which one realizes what `Make` is all about, and without
+This is the point at which one realizes what `make` is all about, and without
 some further prodding, it is easy to mistakenly believe that it may *not* be relevant
 to *your* set of problems or *your* language tools - but this is the naive fog
 of mis-perceptions clouding judgment - we will get to the good stuff soon enough.
@@ -384,10 +384,10 @@ Let's formulate this as Makefile rules, where we have four trip legs we need to 
 3. Fly from Riga to Tromsø
 4. Fly from Tromsø to Los Angeles
 
-        schedule_flight_to_krakaw: 
-            echo $(krakaw_date) > schedule_flight_to_krakaw
+        schedule_flight_to_krakow: 
+            echo $(krakow_date) > schedule_flight_to_krakow
 
-        schedule_drive_to_riga: schedule_flight_to_krakaw
+        schedule_drive_to_riga: schedule_flight_to_krakow
             echo $(riga_date) > schedule_drive_to_riga
 
         schedule_flight_to_tromso: schedule_drive_to_riga
@@ -399,30 +399,30 @@ Let's formulate this as Makefile rules, where we have four trip legs we need to 
 Here I have introduced a new piece of syntax in make files - arguments. A word
 surround with a `$(...)` will be replaced by the string specified on the command
 line for that argument. For example, `$(arg_1)` will be replaced by `file_1` in
-either of these invocations of `Make`: `arg_1=file_1 make file` or `make file
+either of these invocations of `make`: `arg_1=file_1 make file` or `make file
 arg_1=file_1`. Simple, right? Yes, it is.
 
-So, to schedule the flight to Krakáw, we invoke `Make` as `make
-schedule_flight_to_krakaw krakaw_date=08/01/2019` 
+So, to schedule the flight to Krakáw, we invoke `make` as `make
+schedule_flight_to_krakow krakow_date=08/01/2019` 
 
 Let's see what it produced.
 
-    $ cat schedule_flight_to_krakaw
+    $ cat schedule_flight_to_krakow
     10/01/2019
     
-It would be easier to simply pass all of the dates and have `Make` take care of
-creating all of the files. By default, `Make` will run the first target in the
+It would be easier to simply pass all of the dates and have `make` take care of
+creating all of the files. By default, `make` will run the first target in the
 file, and idiomatically we will call this target `all`.
 
     all: schedule_flight_to_los_angeles
     
 Now we can invoke this with or without `all`
 
-    $ make krakaw_date=10/01/2019 \
+    $ make krakow_date=10/01/2019 \
            riga_date=10/15/2019 \
            tromso_date=10/20/2019 \
            los_angeles_date=10/23/2019
-      echo 10/01/2019 > schedule_flight_to_krakaw
+      echo 10/01/2019 > schedule_flight_to_krakow
       echo 10/15/2019 > schedule_drive_to_riga
       echo 10/20/2019 > schedule_flight_to_tromso
       echo 10/23/2019 > schedule_flight_to_los_angeles
@@ -436,12 +436,12 @@ We can use `sh` itself to handle errors, in this case missing arguments.
 
     all: schedule_flight_to_los_angeles
 
-    schedule_flight_to_krakaw:
-        @if [ -z "$(krakaw_date)" ]; then \
-            echo "You must set krakaw_date"; exit 1; fi
-        echo $(krakaw_date) > schedule_flight_to_krakaw
+    schedule_flight_to_krakow:
+        @if [ -z "$(krakow_date)" ]; then \
+            echo "You must set krakow_date"; exit 1; fi
+        echo $(krakow_date) > schedule_flight_to_krakow
 
-    schedule_drive_to_riga: schedule_flight_to_krakaw
+    schedule_drive_to_riga: schedule_flight_to_krakow
         @if [ -z "$(riga_date)" ]; then \
             echo "You must set riga_date"; exit 1; fi
         echo $(riga_date) > schedule_drive_to_riga
@@ -456,16 +456,16 @@ We can use `sh` itself to handle errors, in this case missing arguments.
             echo "You must set los_angeles_date"; exit 1; fi
         echo $(los_angeles_date) > schedule_flight_to_los_angeles
         
-The `@` simply specifies that `Make` will not echo the command, which for error
+The `@` simply specifies that `make` will not echo the command, which for error
 checking would be just noise.
 
-Now if we run from a clean state, `Make` will inform us of any necessary
+Now if we run from a clean state, `make` will inform us of any necessary
 arguments that are necessary, and fail. Here we have left out `riga_date`.
 
-    $ make krakaw_date=10/01/2019 \
+    $ make krakow_date=10/01/2019 \
            tromso_date=10/20/2019 \
            los_angeles_date=10/23/2019
-      echo 10/01/2019 > schedule_flight_to_krakaw
+      echo 10/01/2019 > schedule_flight_to_krakow
       You must set riga_date
       make: *** [schedule_drive_to_riga] Error 1
 
@@ -479,7 +479,7 @@ Let's set the `riga_date`.
       echo 10/23/2019 > schedule_flight_to_los_angeles
 
 Say we now want to reschedule the flight to Riga, Tromsø, and Los Angeles - we
-won't be able to since we have already schedule the flight to Krakaw.
+won't be able to since we have already schedule the flight to Krakow.
 
     $ make riga_date=10/16/2019 \
            tromso_date=10/21/2019 \
@@ -488,7 +488,7 @@ won't be able to since we have already schedule the flight to Krakaw.
       
 #### Prerequisites
 
-`Make` won't allow us to reschedule once we have scheduled something.
+`make` won't allow us to reschedule once we have scheduled something.
 
     $ make schedule_drive_to_riga riga_date=10/16/2019 
     make: `schedule_drive_to_riga' is up to date.
@@ -501,7 +501,7 @@ And then schedule it.
 
     $ make schedule_drive_to_riga riga_date=10/16/2019 
     
-Lets try to reschedule the flight to Los Angeles in the same manner.
+Let's try to reschedule the flight to Los Angeles in the same manner.
 
     $ rm schedule_flight_to_los_angeles
     $ make schedule_flight_to_los_angeles los_angeles_date=10/24/2019
@@ -519,7 +519,42 @@ So, let's do that.
 
 ### Makefiles are not about files
 
-What if we want to make a reschedule target?
+So far, we have seen that the targets of a Makefile truly represent
+_files_. But, this seems limiting. For example, what if we want to make a
+`reschedule` target?
+
+Previously, we had to manually `rm` the file to reschedule it. A `reschedule`
+target should allow us to run something like `make
+reschedule_flight_to_los_angeles los_angeles_date=10/24/2019`. 
+
+It turns out that we can do this. If we consider what it means to reschedule, it
+seems there is no circumstance where we want to block the reschedule (i.e., we
+are actively rescheduling, therefore we _intend_ to schedule when the date is
+already set). 
+
+How about something as simple as this:
+    
+    reschedule_flight_to_los_angeles: schedule_flight_to_los_angeles
+        @if [ -z "$(los_angeles_date)" ]; then \
+            echo "You must set los_angeles_date"; exit 1; fi
+            echo $(los_angeles_date) > schedule_flight_to_los_angeles
+            
+This looks familiar, as it is _the same recipe_ as
+`schedule_flight_to_los_angeles`. Yet, it behaves differently. We can run it as
+many times as we want, and it won't complain.
+
+
+    $ make reschedule_flight_to_los_angeles los_angeles_date=10/25/2019
+      echo 10/25/2019 > schedule_flight_to_los_angeles
+    $ test$ make reschedule_flight_to_los_angeles los_angeles_date=10/26/2019
+      echo 10/26/2019 > schedule_flight_to_los_angeles
+    $ test$ make reschedule_flight_to_los_angeles los_angeles_date=10/27/2019
+      echo 10/27/2019 > schedule_flight_to_los_angeles
+      
+The essential difference is that the file being produced is _not_ the same name
+as the target. In fact, we simply do not create a file with the same name as the
+target, therefore from `make`'s point of view, the target is _never up to date_.
+
 
 ### Making Bread Analogy
                     
