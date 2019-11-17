@@ -43,3 +43,7 @@ exclude:
   - vendor/gems/
   - vendor/ruby/
   - Makefile
+  - CNAME
+  - GTAGS
+  - GPATH
+  - TAGS
