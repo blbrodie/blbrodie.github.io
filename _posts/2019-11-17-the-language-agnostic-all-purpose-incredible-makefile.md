@@ -43,7 +43,7 @@ you.
 
 4. You have to run certain commands before others. For example, when switching branches in a rails project, you might have to do something like
 
-        bundle && RAILS_ENV=test bundle exec rails db:migrate \
+        bundle && RAILS_ENV=test bundle exec rails db:migrate \\
         && bundle exec rspec spec/features/
 
 ### Benefits of a Makefile
