@@ -41,7 +41,7 @@ you.
 
 3. You keep notes in Evernote, an org file, or a text file to write down commonly used commands for a project.
 
-4. You have to run certain commands before others? For example, when switching branches in a rails project, you might have to do something like
+4. You have to run certain commands before others. For example, when switching branches in a rails project, you might have to do something like
 
         bundle && RAILS_ENV=test bundle exec rails db:migrate && bundle exec rspec spec/features/
 
