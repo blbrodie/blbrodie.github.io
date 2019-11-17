@@ -9,8 +9,8 @@ clean:
 	bundle
 	touch .make.deps
 
-build:
+build: deps
 	bundle exec jekyll build --drafts
 
-serve:
+serve: deps
 	bundle exec jekyll serve --drafts --incremental
