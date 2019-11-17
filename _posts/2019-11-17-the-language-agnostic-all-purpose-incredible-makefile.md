@@ -1,6 +1,6 @@
 ---
 layout: post
-title: The Language Agnositic, All-Purpose, Incredible, Makefile
+title: The Language Agnostic, All-Purpose, Incredible, Makefile
 categories: Makefile
 ---
 
@@ -249,7 +249,7 @@ _satisfied_ (we'll get into what that means exactly), `make` will travel the
 graph until it finds a node that _is_ satisfied. Once it finds that satisfied
 prerequisite, it will reverse the path it just took to get to the satisfied
 prerequisite, and for each node in this path, it will execute the target (which
-itself could have it's own other prerequisites).
+itself could have its own other prerequisites).
 
 Let's look at a slightly more complex tree.
 
@@ -390,7 +390,7 @@ to Los Angeles from Tromsø *before* landing in Tromsø.
 Let's formulate this as a Makefile, where we have four trip legs we need to
 coordinate.
 
-1. Flight from Los Angeles to Krakáw, Poland
+1. Flight from Los Angeles to Kraków, Poland
 2. Drive from Krakáw, Poland to Riga
 3. Fly from Riga to Tromsø
 4. Fly from Tromsø to Los Angeles
@@ -408,7 +408,7 @@ coordinate.
             echo $(los_angeles_date) > schedule_flight_to_los_angeles
 
 Here I have introduced a new piece of syntax in make files - arguments. A word
-surround with a `$(...)` will be replaced by the string specified on the command
+surrounded with a `$(...)` will be replaced by the string specified on the command
 line for that argument. For example, `$(arg_1)` will be replaced by `file_1` in
 either of these invocations of `make`: `arg_1=file_1 make file` or `make file
 arg_1=file_1`. Simple, right? Yes, it is.
@@ -521,7 +521,7 @@ Let's try to reschedule the flight to Los Angeles in the same manner.
       
 `Make` detects that our `schedule_flight_to_tromso` prerequisite is not
 satisfied because the timestamp of `schedule_flight_to_riga` is _newer_ than the
-timestamp of `schedule_flight_to_trompso`, therefore it also must be updated!
+timestamp of `schedule_flight_to_tromso`, therefore it also must be updated!
 So, let's do that.
 
     $ make schedule_flight_to_los_angeles tromso_date=10/22/2019 los_angeles_date=10/24/2019
@@ -967,4 +967,9 @@ date, unlike documentation. If it doesn't work, it will require an immediate fix
 
 I hope that I have clarified Makefiles and perhaps convinced you of their
 power. Just go ahead and try it in your current project, and see what it can do
-for. 
+for you. 
+
+
+### Further Reading
+1. [Notes For New Make Users](http://gromnitsky.users.sourceforge.net/articles/notes-for-new-make-users/)
+2. [The Official Manual](https://www.gnu.org/software/make/manual/)
