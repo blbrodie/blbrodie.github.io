@@ -99,15 +99,15 @@ The target is the thing you want to do (run a test, build code, drop a database,
 Prerequisites are the rules needed to run before the recipe can run. For
 example, imagine checking out a new ruby project and executing `bundle exec
 rspec`; you will probably encounter an error about needing to run `bundle`
-first! So, running `bundle` is a *prerequisit* of running rspec tests.
+first! So, running `bundle` is a *prerequisite* of running rspec tests.
 
 If you are thinking "oh, but I don't want to run bundle *every* time, don't
-worry. Makefiles can determine if a prerequisite needs to be run or not. We'll
+worry. Make can determine if a prerequisite needs to be run or not. We'll
 get to that.
 
 #### Command
 
-A command is simply run the shell (`sh` by default). If your target is
+A command is simply run in the shell (`sh` by default). If your target is
 `test`, the command might be `bundle exec rspec`.
 
 #### A dead simple example
