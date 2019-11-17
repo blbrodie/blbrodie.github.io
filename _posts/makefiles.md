@@ -868,29 +868,33 @@ prerequisites defined. They are _the same_ as those for the `serve` target.
 Developing a Makefile along with developing code is quite natural, and once a
 solid foundation is laid, it is often this simple to define new targets. 
 
+#### gitignore
+
+Because this results in `.make.*` files, be sure to `echo .make.* > .gitignore` 
+to avoid checking them into git.
+
 ### Decoupled Freedom
 
 Because Make is a general purpose tool that is decoupled from languages and
 frameworks, it becomes incredibly freeing once Make becomes part of the workflow.
 
 For example, I am working on a project at the moment that requires a database to
-be loaded in order to run the server. I decided that it would be less coupled to
-the system if I simply spun up a database with docker instead of relying on a
+be loaded in order to run the server. I realized that it would be less coupled to
+my own system if I simply spun up a database with docker instead of relying on a
 database actually running as a service on my machine. 
 
-Often, using docker in a project can become problematic, because there is no
-tool in place to manage the docker instances. Sometimes docker is running, and
-all goes well, sometimes it isn't running, requiring the developer to remember
-one of those confusing docker commands (is it create, run, exec, or
+Often, using docker in a project can become problematic, because there is no out
+of the box tooling in place to manage the docker instances. Sometimes docker is
+running, and all goes well, sometimes it isn't running, requiring the developer
+to remember one of those confusing docker commands (is it create, run, exec, or
 start?). What happens if the database on the docker image gets trashed? Now you
 need to remember another set of commands to reset the database.
 
 Makefiles allow the developer to create a workflow with docker that isn't
 confusing, and remains consistent and predictable.
 
-I'm working on a project right now where I am attempting to do this. Using a
-Makefile allows me to start mysql as a dependency when I run the server (or,
-when I need it for a test). I have modified it below into an example.
+Using a Makefile allows me to start mysql as a dependency when I run the server
+(or, when I need it for a test). I have modified it below as an example.
 
     ...
     run: build mysql-start
@@ -926,15 +930,15 @@ when I need it for a test). I have modified it below into an example.
     ...
     
 As you can see, our recipes can become quite complex once we have some
-requirements. Here, we have schema that has encryption enabled, so requires some
-configuration around that. Running these manually would be unproductive. `mysql-create`
-_only_ creates the container if the container doesn't already exist. I am using
-`||` to accomplish this. Furthermore, in `mysql-start`, `docker start` is
-idempotent, so if container is started, it will work just fine. The `while` loop
-checks that a process can connect to `mysql`, and if it cannot, it waits one
-second and attempts to check again. This is necessary as the `mysql` database
-process is not always available immediately, so we need to wait until it is up
-to connect to it.
+requirements. Here, we have a schema that has encryption enabled, so it requires
+some configuration around that. Running these manually would be
+unproductive. `mysql-create` _only_ creates the container if the container
+doesn't already exist. I am using `||` to accomplish this. Furthermore, in
+`mysql-start`, `docker start` is idempotent, so if container is started, it will
+work just fine. The `while` loop checks that a process can connect to `mysql`,
+and if it cannot, it waits one second and attempts to check again. This is
+necessary as the `mysql` database process is not always available immediately,
+so we need to wait until it is up to connect to it.
 
 Without a Makefile in place, we simply would not have the freedom to get docker
 into our development workflow in a consistent manner. At best, we would have
