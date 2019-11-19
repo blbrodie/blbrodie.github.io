@@ -139,7 +139,7 @@ will learn by doing. Create a makefile so that it looks like this:
     file_1:
         touch file_1
 
-    file_2:
+    file_2: file_1
         touch file_2
 
 And *be sure to use tabs to indent the commands*. This is a requirement that
