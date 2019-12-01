@@ -1,7 +1,7 @@
 ---
 layout: post
 title: The Language Agnostic, All-Purpose, Incredible, Makefile
-categories: Makefile
+tags: [Makefile, programming]
 ---
 
 I like to use Makefiles. I like to use Makefiles in Java. I like to
