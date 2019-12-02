@@ -9,7 +9,7 @@ Similar to my previous post on [Makefiles]({% post_url
 claim that Makefiles are the entry point for a project's commands, here I claim
 that tags are the entry point to navigating through a project's code. For
 example, if you use Vim or Emacs with evil-mode, with your cursor on a function
-call, `Ctrl-]` will jump you to the function definition, while `Ctrl-T` will
+call, `Ctrl-]` will jump you to the function definition, while `Ctrl-t` will
 jump you back to where you came from!
 
 Yet, these simple, but essential, navigation commands won't work out of the
