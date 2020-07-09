@@ -1,3 +1,5 @@
+250 Things Every Architect Should Know: https://www.readingdesign.org/250-things
+
 ### Timezone Rules
 1. Get your datatypes right - use dates for datetimes. Don't convert.
 2. Always use UTC except at the edges of the system.
